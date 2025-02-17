@@ -18,12 +18,14 @@ use Symfony\Contracts\HttpClient\Exception\ExceptionInterface;
 
 class ComponentApiTest extends ApiTest
 {
+    private ComponentApi $componentApi;
+
     /**
      * @param callable[] $responses
      */
     private function setupFactory(array $responses): void
     {
-        ComponentApi::setup(
+        $this->componentApi = new ComponentApi(
             new MockHttpClient($responses, 'https://v5.3.ignores/baseUri'),
             $this->createMock(LoggerInterface::class),
             'project',
@@ -76,7 +78,7 @@ class ComponentApiTest extends ApiTest
     {
         $this->setupFactory([$this->getGetComponentsResponse([])]);
 
-        $this->assertEmpty(ComponentApi::getComponents());
+        $this->assertEmpty($this->componentApi->getComponents());
     }
 
     /**
@@ -90,7 +92,7 @@ class ComponentApiTest extends ApiTest
         ];
         $this->setupFactory([$this->getGetComponentsResponse($results)]);
 
-        $components = ComponentApi::getComponents();
+        $components = $this->componentApi->getComponents();
         foreach ($results as $result) {
             $this->assertSame($result['translations_url'], $components[$result['slug']]->translations_url);
         }
@@ -108,13 +110,13 @@ class ComponentApiTest extends ApiTest
             ]),
         ]);
 
-        $this->assertFalse(ComponentApi::hasComponent('notExisting'));
+        $this->assertFalse($this->componentApi->hasComponent('notExisting'));
 
         // calling getComponents a second time because it was empty the first time
-        $this->assertFalse(ComponentApi::hasComponent('notExisting'));
+        $this->assertFalse($this->componentApi->hasComponent('notExisting'));
 
         // not calling getComponents a third time
-        $this->assertFalse(ComponentApi::hasComponent('notExisting'));
+        $this->assertFalse($this->componentApi->hasComponent('notExisting'));
     }
 
     /**
@@ -125,10 +127,10 @@ class ComponentApiTest extends ApiTest
         $data = DTOFaker::createComponentData();
         $this->setupFactory([$this->getGetComponentsResponse([$data])]);
 
-        $this->assertTrue(ComponentApi::hasComponent($data['slug']));
+        $this->assertTrue($this->componentApi->hasComponent($data['slug']));
 
         // not calling getComponents a second time
-        $this->assertTrue(ComponentApi::hasComponent($data['slug']));
+        $this->assertTrue($this->componentApi->hasComponent($data['slug']));
     }
 
     /**
@@ -143,10 +145,10 @@ class ComponentApiTest extends ApiTest
 
         $this->setupFactory([$this->getAddComponentResponse($content, $data)]);
 
-        $component = ComponentApi::addComponent($newComponent->slug, $content);
+        $component = $this->componentApi->addComponent($newComponent->slug, $content);
         $this->assertEquals($newComponent, $component);
 
-        $components = ComponentApi::getComponents();
+        $components = $this->componentApi->getComponents();
         $this->assertEquals($newComponent, $components[$newComponent->slug]);
     }
 
@@ -167,23 +169,23 @@ class ComponentApiTest extends ApiTest
             $this->getAddComponentResponse($newContent, $newData),
         ]);
 
-        $component = ComponentApi::getComponent($existingComponent->slug);
+        $component = $this->componentApi->getComponent($existingComponent->slug);
         if (!$component) {
             $this->fail();
         }
 
         $this->assertEquals($existingComponent, $component);
 
-        $this->assertNull(ComponentApi::getComponent($newComponent->slug));
+        $this->assertNull($this->componentApi->getComponent($newComponent->slug));
 
-        $component = ComponentApi::getComponent($newComponent->slug, $newContent);
+        $component = $this->componentApi->getComponent($newComponent->slug, $newContent);
         if (!$component) {
             $this->fail();
         }
 
         $this->assertEquals($newComponent, $component);
 
-        $components = ComponentApi::getComponents();
+        $components = $this->componentApi->getComponents();
         $this->assertEquals($newComponent, $components[$newComponent->slug]);
     }
 
@@ -198,6 +200,6 @@ class ComponentApiTest extends ApiTest
             $this->getDeleteComponentResponse($component),
         ]);
 
-        ComponentApi::deleteComponent($component);
+        $this->componentApi->deleteComponent($component);
     }
 }

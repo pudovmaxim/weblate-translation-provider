@@ -9,6 +9,9 @@
 
 namespace M2MTech\WeblateTranslationProvider;
 
+use M2MTech\WeblateTranslationProvider\Api\ComponentApi;
+use M2MTech\WeblateTranslationProvider\Api\TranslationApi;
+use M2MTech\WeblateTranslationProvider\Api\UnitApi;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpClient\ScopingHttpClient;
 use Symfony\Component\Translation\Dumper\XliffFileDumper;
@@ -21,44 +24,19 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 class WeblateProviderFactory extends AbstractProviderFactory
 {
-    /** @var HttpClientInterface */
-    private $client;
-
-    /** @var LoaderInterface */
-    private $loader;
-
-    /** @var LoggerInterface */
-    private $logger;
-
-    /** @var XliffFileDumper */
-    private $xliffFileDumper;
-
-    /** @var string */
-    private $defaultLocale;
-
-    /** @var array<string,string|bool> */
-    private $bundleConfig;
-
     /**
      * @param array<string,string|bool> $bundleConfig
      */
     public function __construct(
-        HttpClientInterface $client,
-        LoaderInterface $loader,
-        LoggerInterface $logger,
-        XliffFileDumper $xliffFileDumper,
-        string $defaultLocale,
-        array $bundleConfig
+        private HttpClientInterface $client,
+        private LoaderInterface     $loader,
+        private LoggerInterface     $logger,
+        private XliffFileDumper     $xliffFileDumper,
+        private string              $defaultLocale,
+        private array               $bundleConfig
     ) {
-        $this->client = $client;
-        $this->loader = $loader;
-        $this->logger = $logger;
-        $this->xliffFileDumper = $xliffFileDumper;
-
-        $this->defaultLocale = $defaultLocale;
-
-        $this->bundleConfig = $bundleConfig;
     }
+
 
     protected function getSupportedSchemes(): array
     {
@@ -93,14 +71,22 @@ class WeblateProviderFactory extends AbstractProviderFactory
             preg_quote($api, '/')
         );
 
+        $project = $this->getUser($dsn);
+
+        $componentApi = new ComponentApi($client, $this->logger, $this->defaultLocale, $project);
+        $translationApi = new TranslationApi($client, $this->logger);
+        $unitApi = new UnitApi($client, $this->logger);
+
         return new WeblateProvider(
-            $client,
             $this->loader,
             $this->logger,
             $this->xliffFileDumper,
             $this->defaultLocale,
             $endpoint,
-            $this->getUser($dsn)
+            $componentApi,
+            $translationApi,
+            $unitApi,
+            $project
         );
     }
 }

@@ -19,12 +19,13 @@ use Symfony\Contracts\HttpClient\Exception\ExceptionInterface;
 
 class TranslationApiTest extends ApiTest
 {
+    private TranslationApi $translationApi;
     /**
      * @param callable[] $responses
      */
     private function setupFactory(array $responses): void
     {
-        TranslationApi::setup(
+        $this->translationApi = new TranslationApi(
             new MockHttpClient($responses, 'https://v5.3.ignores/baseUri'),
             $this->createMock(LoggerInterface::class)
         );
@@ -89,13 +90,13 @@ class TranslationApiTest extends ApiTest
             $this->getGetTranslationsResponse($component, [DTOFaker::createTranslationData()]),
         ]);
 
-        $this->assertFalse(TranslationApi::hasTranslation($component, 'notExisting'));
+        $this->assertFalse($this->translationApi->hasTranslation($component, 'notExisting'));
 
         // calling getTranslations a second time because it was empty the first time
-        $this->assertFalse(TranslationApi::hasTranslation($component, 'notExisting'));
+        $this->assertFalse($this->translationApi->hasTranslation($component, 'notExisting'));
 
         // not calling getTranslations a third time
-        $this->assertFalse(TranslationApi::hasTranslation($component, 'notExisting'));
+        $this->assertFalse($this->translationApi->hasTranslation($component, 'notExisting'));
     }
 
     /**
@@ -110,10 +111,10 @@ class TranslationApiTest extends ApiTest
             $this->getGetTranslationsResponse($component, [$data]),
         ]);
 
-        $this->assertTrue(TranslationApi::hasTranslation($component, $data['language_code']));
+        $this->assertTrue($this->translationApi->hasTranslation($component, $data['language_code']));
 
         // not calling getTranslations a second time
-        $this->assertTrue(TranslationApi::hasTranslation($component, $data['language_code']));
+        $this->assertTrue($this->translationApi->hasTranslation($component, $data['language_code']));
     }
 
     /**
@@ -131,7 +132,7 @@ class TranslationApiTest extends ApiTest
             $this->getAddTranslationResponse($component, 'language_code='.$newTranslation->language_code, $data),
         ]);
 
-        $translation = TranslationApi::addTranslation($component, $newTranslation->language_code);
+        $translation = $this->translationApi->addTranslation($component, $newTranslation->language_code);
         $this->assertEquals($newTranslation, $translation);
     }
 
@@ -154,10 +155,10 @@ class TranslationApiTest extends ApiTest
             $this->getAddTranslationResponse($component, 'language_code='.$newTranslation->language_code, $newData),
         ]);
 
-        $translation = TranslationApi::getTranslation($component, $existingTranslation->language_code);
+        $translation = $this->translationApi->getTranslation($component, $existingTranslation->language_code);
         $this->assertEquals($existingTranslation, $translation);
 
-        $translation = TranslationApi::getTranslation($component, $newTranslation->language_code);
+        $translation = $this->translationApi->getTranslation($component, $newTranslation->language_code);
         $this->assertEquals($newTranslation, $translation);
     }
 
@@ -173,7 +174,7 @@ class TranslationApiTest extends ApiTest
             $this->getUploadTranslationResponse($translation, $content),
         ]);
 
-        TranslationApi::uploadTranslation($translation, $content);
+        $this->translationApi->uploadTranslation($translation, $content);
     }
 
     /**
@@ -188,6 +189,6 @@ class TranslationApiTest extends ApiTest
             $this->getDownloadTranslationResponse($translation, $content),
         ]);
 
-        TranslationApi::downloadTranslation($translation);
+        $this->translationApi->downloadTranslation($translation);
     }
 }

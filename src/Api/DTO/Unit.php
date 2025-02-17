@@ -11,9 +11,7 @@ namespace M2MTech\WeblateTranslationProvider\Api\DTO;
 
 class Unit extends DTO
 {
-    /** @var string */
-    public $context;
+    public string $context;
 
-    /** @var string */
-    public $url;
+    public string $url;
 }

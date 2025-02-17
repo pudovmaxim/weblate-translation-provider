@@ -9,6 +9,9 @@
 
 namespace M2MTech\WeblateTranslationProvider\Tests;
 
+use M2MTech\WeblateTranslationProvider\Api\ComponentApi;
+use M2MTech\WeblateTranslationProvider\Api\TranslationApi;
+use M2MTech\WeblateTranslationProvider\Api\UnitApi;
 use M2MTech\WeblateTranslationProvider\Tests\Api\DTO\DTOFaker;
 use M2MTech\WeblateTranslationProvider\WeblateProvider;
 use Psr\Log\LoggerInterface;
@@ -32,14 +35,22 @@ class WeblateProviderTest extends ProviderTestCase
         string $defaultLocale,
         string $endpoint
     ): ProviderInterface {
+        $project = 'project';
+
+        $componentApi = new ComponentApi($client, $logger, $project, $defaultLocale);
+        $translationApi = new TranslationApi($client, $logger);
+        $unitApi = new UnitApi($client, $logger);
+
         return new WeblateProvider(
-            $client,
             $loader,
             $logger,
             $this->getXliffFileDumper(),
             $defaultLocale,
             $endpoint,
-            'project'
+            $componentApi,
+            $translationApi,
+            $unitApi,
+            $project
         );
     }
 
@@ -60,8 +71,7 @@ class WeblateProviderTest extends ProviderTestCase
         string $expectedBody,
         string $result,
         int $statusCode = 200
-    ): callable
-    {
+    ): callable {
         return function (string $method, string $url, array $options = []) use ($expectedUrl, $expectedMethod, $expectedBody, $result, $statusCode): ResponseInterface {
             $this->assertSame($expectedMethod.' '.$expectedUrl, $method.' '.$url);
             $this->assertSame('Authorization: Bearer API_TOKEN', $options['normalized_headers']['authorization'][0]);
