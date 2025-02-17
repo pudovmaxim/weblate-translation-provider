@@ -20,8 +20,8 @@
     "require": {
         "php": ">=8.2",
         "ext-json": "*",
-        "spatie/data-transfer-object": "^1.14|^2.8|^3.7",
-        "symfony/config": "^5.3|^6.0|^7.0",
+        "spatie/data-transfer-object": "^3.7",
+        "symfony/config": "^7.0",
         "symfony/dependency-injection": "^7.0",
         "symfony/http-client": "^7.0",
         "symfony/http-kernel": "^7.0",
