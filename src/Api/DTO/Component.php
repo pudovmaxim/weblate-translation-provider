@@ -11,18 +11,13 @@ namespace M2MTech\WeblateTranslationProvider\Api\DTO;
 
 class Component extends DTO
 {
-    /** @var string */
-    public $slug;
+    public string $slug;
 
-    /** @var string */
-    public $url;
+    public string $url;
 
-    /** @var string */
-    public $repository_url;
+    public string $repository_url;
 
-    /** @var string */
-    public $translations_url;
+    public string $translations_url;
 
-    /** @var bool */
-    public $created = false;
+    public bool $created = false;
 }

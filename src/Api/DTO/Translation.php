@@ -11,18 +11,13 @@ namespace M2MTech\WeblateTranslationProvider\Api\DTO;
 
 class Translation extends DTO
 {
-    /** @var string */
-    public $language_code;
+    public string $language_code;
 
-    /** @var string */
-    public $filename;
+    public string $filename;
 
-    /** @var string */
-    public $file_url;
+    public string $file_url;
 
-    /** @var string */
-    public $units_list_url;
+    public string $units_list_url;
 
-    /** @var bool */
-    public $created = false;
+    public bool $created = false;
 }

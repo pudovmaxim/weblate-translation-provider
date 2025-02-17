@@ -19,12 +19,14 @@ use Symfony\Contracts\HttpClient\Exception\ExceptionInterface;
 
 class UnitApiTest extends ApiTest
 {
+    private UnitApi $unitApi;
+
     /**
      * @param callable[] $responses
      */
     private function setupFactory(array $responses): void
     {
-        UnitApi::setup(
+        $this->unitApi = new UnitApi(
             new MockHttpClient($responses, 'https://v5.3.ignores/baseUri'),
             $this->createMock(LoggerInterface::class)
         );
@@ -86,13 +88,13 @@ class UnitApiTest extends ApiTest
             $this->getGetUnitsResponse($translation, [DTOFaker::createUnitData()]),
         ]);
 
-        $this->assertFalse(UnitApi::hasUnit($translation, 'notExisting'));
+        $this->assertFalse($this->unitApi->hasUnit($translation, 'notExisting'));
 
         // calling getUnits a second time because it was empty the first time
-        $this->assertFalse(UnitApi::hasUnit($translation, 'notExisting'));
+        $this->assertFalse($this->unitApi->hasUnit($translation, 'notExisting'));
 
         // not calling getUnits a third time
-        $this->assertFalse(UnitApi::hasUnit($translation, 'notExisting'));
+        $this->assertFalse($this->unitApi->hasUnit($translation, 'notExisting'));
     }
 
     /**
@@ -107,10 +109,10 @@ class UnitApiTest extends ApiTest
             $this->getGetUnitsResponse($translation, [$data]),
         ]);
 
-        $this->assertTrue(UnitApi::hasUnit($translation, $data['context']));
+        $this->assertTrue($this->unitApi->hasUnit($translation, $data['context']));
 
         // not calling getUnits a second time
-        $this->assertTrue(UnitApi::hasUnit($translation, $data['context']));
+        $this->assertTrue($this->unitApi->hasUnit($translation, $data['context']));
     }
 
     /**
@@ -127,7 +129,7 @@ class UnitApiTest extends ApiTest
             $this->getAddUnitResponse($translation, 'key='.$key.'&value='.urlencode($value)),
         ]);
 
-        UnitApi::addUnit($translation, $key, $value);
+        $this->unitApi->addUnit($translation, $key, $value);
     }
 
     /**
@@ -143,9 +145,9 @@ class UnitApiTest extends ApiTest
             $this->getGetUnitsResponse($translation, [$data]),
         ]);
 
-        $this->assertNull(UnitApi::getUnit($translation, 'notExisting'));
+        $this->assertNull($this->unitApi->getUnit($translation, 'notExisting'));
 
-        $unit = UnitApi::getUnit($translation, $existingUnit->context);
+        $unit = $this->unitApi->getUnit($translation, $existingUnit->context);
         $this->assertEquals($existingUnit, $unit);
     }
 
@@ -161,7 +163,7 @@ class UnitApiTest extends ApiTest
             $this->getUpdateUnitResponse($unit, 'target='.urlencode($value).'&state=20'),
         ]);
 
-        UnitApi::updateUnit($unit, $value);
+        $this->unitApi->updateUnit($unit, $value);
     }
 
     /**
@@ -175,6 +177,6 @@ class UnitApiTest extends ApiTest
             $this->getDeleteUnitResponse($unit),
         ]);
 
-        UnitApi::deleteUnit($unit);
+        $this->unitApi->deleteUnit($unit);
     }
 }

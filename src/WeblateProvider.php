@@ -22,45 +22,20 @@ use Symfony\Component\Translation\Provider\ProviderInterface;
 use Symfony\Component\Translation\TranslatorBag;
 use Symfony\Component\Translation\TranslatorBagInterface;
 use Symfony\Contracts\HttpClient\Exception\ExceptionInterface;
-use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 class WeblateProvider implements ProviderInterface
 {
-    /** @var LoaderInterface */
-    private $loader;
-
-    /** @var LoggerInterface */
-    private $logger;
-
-    /** @var XliffFileDumper */
-    private $xliffFileDumper;
-
-    /** @var string */
-    private $defaultLocale;
-
-    /** @var string */
-    private $endpoint;
-
     public function __construct(
-        HttpClientInterface $client,
-        LoaderInterface $loader,
-        LoggerInterface $logger,
-        XliffFileDumper $xliffFileDumper,
-        string $defaultLocale,
-        string $endpoint,
-        string $project
+        private LoaderInterface $loader,
+        private LoggerInterface $logger,
+        private XliffFileDumper $xliffFileDumper,
+        private string          $defaultLocale,
+        private string          $endpoint,
+        private ComponentApi    $componentApi,
+        private TranslationApi  $translationApi,
+        private UnitApi         $unitApi,
+        string                  $project
     ) {
-        $this->loader = $loader;
-        $this->logger = $logger;
-        $this->xliffFileDumper = $xliffFileDumper;
-
-        $this->defaultLocale = $defaultLocale;
-
-        $this->endpoint = $endpoint;
-
-        ComponentApi::setup($client, $logger, $project, $defaultLocale);
-        TranslationApi::setup($client, $logger);
-        UnitApi::setup($client, $logger);
     }
 
     public function __toString(): string
@@ -81,7 +56,7 @@ class WeblateProvider implements ProviderInterface
                 }
 
                 $content = $this->xliffFileDumper->formatCatalogue($catalogue, $domain, ['default_locale' => $this->defaultLocale]);
-                $component = ComponentApi::getComponent($domain, $content);
+                $component = $this->componentApi->getComponent($domain, $content);
                 if (!$component) {
                     $this->logger->error('Could not get/add component for '.$domain);
 
@@ -92,22 +67,22 @@ class WeblateProvider implements ProviderInterface
                     continue;
                 }
 
-                $translation = TranslationApi::getTranslation($component, $catalogue->getLocale());
+                $translation = $this->translationApi->getTranslation($component, $catalogue->getLocale());
 
                 if ($translation->created) {
-                    TranslationApi::uploadTranslation($translation, $content);
+                    $this->translationApi->uploadTranslation($translation, $content);
 
                     continue;
                 }
 
-                $file = TranslationApi::downloadTranslation($translation);
+                $file = $this->translationApi->downloadTranslation($translation);
                 $weblateCatalogue = $this->loader->load($file, $catalogue->getLocale(), $domain);
 
                 $operation = new TargetOperation($catalogue, $weblateCatalogue);
                 $operation->moveMessagesToIntlDomainsIfPossible(AbstractOperation::NEW_BATCH);
                 $catalogue->add($operation->getNewMessages($domain), $domain);
                 $content = $this->xliffFileDumper->formatCatalogue($catalogue, $domain, ['default_locale' => $this->defaultLocale]);
-                TranslationApi::uploadTranslation($translation, $content);
+                $this->translationApi->uploadTranslation($translation, $content);
             }
         }
     }
@@ -121,21 +96,21 @@ class WeblateProvider implements ProviderInterface
     public function read(array $domains, array $locales): TranslatorBag
     {
         if (!$domains) {
-            $domains = array_keys(ComponentApi::getComponents());
+            $domains = array_keys($this->componentApi->getComponents());
         }
 
         $translatorBag = new TranslatorBag();
 
         foreach ($domains as $domain) {
-            $component = ComponentApi::getComponent($domain);
+            $component = $this->componentApi->getComponent($domain);
             if (!$component) {
                 continue;
             }
 
             foreach ($locales as $locale) {
-                $translation = TranslationApi::getTranslation($component, $locale);
+                $translation = $this->translationApi->getTranslation($component, $locale);
 
-                $file = TranslationApi::downloadTranslation($translation);
+                $file = $this->translationApi->downloadTranslation($translation);
                 $translatorBag->addCatalogue($this->loader->load($file, $locale, $domain));
             }
         }
@@ -155,24 +130,24 @@ class WeblateProvider implements ProviderInterface
                     continue;
                 }
 
-                $component = ComponentApi::getComponent($domain);
+                $component = $this->componentApi->getComponent($domain);
                 if (!$component) {
                     continue;
                 }
 
-                if (!TranslationApi::hasTranslation($component, $catalogue->getLocale())) {
+                if (!$this->translationApi->hasTranslation($component, $catalogue->getLocale())) {
                     continue;
                 }
 
-                $translation = TranslationApi::getTranslation($component, $catalogue->getLocale());
+                $translation = $this->translationApi->getTranslation($component, $catalogue->getLocale());
 
                 foreach ($catalogue->all($domain) as $key => $message) {
-                    $unit = UnitApi::getUnit($translation, $key);
+                    $unit = $this->unitApi->getUnit($translation, $key);
                     if (!$unit) {
                         continue;
                     }
 
-                    UnitApi::deleteUnit($unit);
+                    $this->unitApi->deleteUnit($unit);
                 }
             }
         }

@@ -26,11 +26,7 @@ class UnitTest extends TestCase
 
     public function testMissing(): void
     {
-        if (class_exists('Spatie\DataTransferObject\FlexibleDataTransferObject')) {
-            $this->expectError();
-        } else {
-            $this->assertTrue(true);
-        }
+        $this->expectException(\Throwable::class);
 
         new Unit([]);
     }

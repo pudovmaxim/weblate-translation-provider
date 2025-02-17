@@ -9,12 +9,6 @@
 
 namespace M2MTech\WeblateTranslationProvider\Api\DTO;
 
-if (class_exists('Spatie\DataTransferObject\FlexibleDataTransferObject')) {
-    class DTO extends \Spatie\DataTransferObject\FlexibleDataTransferObject
-    {
-    }
-} else {
-    class DTO extends \Spatie\DataTransferObject\DataTransferObject
-    {
-    }
+class DTO extends \Spatie\DataTransferObject\DataTransferObject
+{
 }
