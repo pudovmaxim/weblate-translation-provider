@@ -73,7 +73,7 @@ class WeblateProviderFactory extends AbstractProviderFactory
 
         $project = $this->getUser($dsn);
 
-        $componentApi = new ComponentApi($client, $this->logger, $this->defaultLocale, $project);
+        $componentApi = new ComponentApi($client, $this->logger, $project, $this->defaultLocale);
         $translationApi = new TranslationApi($client, $this->logger);
         $unitApi = new UnitApi($client, $this->logger);
 
