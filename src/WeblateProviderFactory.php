@@ -1,4 +1,5 @@
 <?php
+
 /*
  * This file is part of the weblate-translation-provider package.
  *
@@ -24,16 +25,12 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 class WeblateProviderFactory extends AbstractProviderFactory
 {
-    /**
-     * @param array<string,string|bool> $bundleConfig
-     */
     public function __construct(
         private HttpClientInterface $client,
         private LoaderInterface     $loader,
         private LoggerInterface     $logger,
         private XliffFileDumper     $xliffFileDumper,
-        private string              $defaultLocale,
-        private array               $bundleConfig
+        private string              $defaultLocale
     ) {
     }
 
@@ -50,23 +47,23 @@ class WeblateProviderFactory extends AbstractProviderFactory
         }
 
         $endpoint = $dsn->getHost();
-        $endpoint .= $dsn->getPort() ? ':'.$dsn->getPort() : '';
+        $endpoint .= $dsn->getPort() ? ':' . $dsn->getPort() : '';
         $path = trim($dsn->getPath() ?? '', '/');
         if ('' !== $path) {
-            $endpoint .= '/'.$path;
+            $endpoint .= '/' . $path;
         }
 
-        $api = $this->bundleConfig['https'] ? 'https://' : 'http://';
-        $api .= $endpoint.'/api/';
+        $api = $dsn->getOption('https', true) ? 'https://' : 'http://';
+        $api .= $endpoint . '/api/';
 
         $client = ScopingHttpClient::forBaseUri(
             $this->client,
             $api,
             [
                 'headers' => [
-                    'Authorization' => 'Token '.$this->getPassword($dsn),
+                    'Authorization' => 'Token ' . $this->getPassword($dsn),
                 ],
-                'verify_peer' => $this->bundleConfig['verify_peer'],
+                'verify_peer' => $dsn->getOption('verify_peer', true),
             ],
             preg_quote($api, '/')
         );
@@ -85,8 +82,7 @@ class WeblateProviderFactory extends AbstractProviderFactory
             $endpoint,
             $componentApi,
             $translationApi,
-            $unitApi,
-            $project
+            $unitApi
         );
     }
 }

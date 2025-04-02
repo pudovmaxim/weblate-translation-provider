@@ -13,17 +13,6 @@ This bundle provides a [Weblate](https://weblate.org) integration for [Symfony T
 composer require m2mtech/weblate-translation-provider
 ```
 
-If you are not using Flex enable the bundle:
-
-```php
-// config/bundles.php
-
-return [
-    // ...
-    M2MTech\WeblateTranslationProvider\WeblateTranslationProviderBundle::class => ['all' => true],
-];
-```
-
 Enable the translation provider:
 
 ```yaml
@@ -44,12 +33,9 @@ WEBLATE_DSN=weblate://PROJECT_NAME:API_TOKEN@WEBLATE_URL
 ```
 
 If you are using a local weblate instance, you can disable the usage of https and/or the verification of the used certificate:
-
-```yaml
-# config/packages/weblate.yaml
-weblate_translation_provider:
-    https: false
-    verify_peer: false
+```dotenv
+# .env
+WEBLATE_DSN=weblate://PROJECT_NAME:API_TOKEN@WEBLATE_URL?https=false&verify_peer=false
 ```
 
 ## Usage

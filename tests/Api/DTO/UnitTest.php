@@ -1,4 +1,5 @@
 <?php
+
 /*
  * This file is part of the weblate-translation-provider package.
  *

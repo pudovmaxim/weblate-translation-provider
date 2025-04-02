@@ -1,4 +1,5 @@
 <?php
+
 /*
  * This file is part of the weblate-translation-provider package.
  *
@@ -50,10 +51,10 @@ class ComponentApi
          *
          * @see https://docs.weblate.org/en/latest/api.html#get--api-projects-(string-project)-components-
          */
-        $response = $this->client->request('GET', 'projects/'.$this->project.'/components/');
+        $response = $this->client->request('GET', 'projects/' . $this->project . '/components/');
 
         if (200 !== $response->getStatusCode()) {
-            $this->logger->debug($response->getStatusCode().': '.$response->getContent(false));
+            $this->logger->debug($response->getStatusCode() . ': ' . $response->getContent(false));
             throw new ProviderException('Unable to get weblate components.', $response);
         }
 
@@ -67,7 +68,7 @@ class ComponentApi
             }
 
             $this->components[$component->slug] = $component;
-            $this->logger->debug('Loaded component '.$component->slug);
+            $this->logger->debug('Loaded component ' . $component->slug);
         }
 
         return $this->components;
@@ -122,18 +123,18 @@ class ComponentApi
             'manage_units' => 'true',
             'source_language' => $this->defaultLocale,
             'file_format' => 'xliff',
-            'docfile' => new DataPart($content, $domain.'/'.$this->defaultLocale.'.xlf'),
+            'docfile' => new DataPart($content, $domain . '/' . $this->defaultLocale . '.xlf'),
         ];
         $formData = new FormDataPart($formFields);
 
-        $response = $this->client->request('POST', 'projects/'.$this->project.'/components/', [
+        $response = $this->client->request('POST', 'projects/' . $this->project . '/components/', [
             'headers' => $formData->getPreparedHeaders()->toArray(),
             'body' => $formData->bodyToString(),
         ]);
 
         if (201 !== $response->getStatusCode()) {
-            $this->logger->debug($response->getStatusCode().': '.$response->getContent(false));
-            throw new ProviderException('Unable to add weblate component '.$domain.'.', $response);
+            $this->logger->debug($response->getStatusCode() . ': ' . $response->getContent(false));
+            throw new ProviderException('Unable to add weblate component ' . $domain . '.', $response);
         }
 
         $result = $response->toArray();
@@ -141,7 +142,7 @@ class ComponentApi
         $component->created = true;
         $this->components[$component->slug] = $component;
 
-        $this->logger->debug('Added component '.$component->slug);
+        $this->logger->debug('Added component ' . $component->slug);
 
         return $component;
     }
@@ -159,13 +160,13 @@ class ComponentApi
         $response = $this->client->request('DELETE', $component->url);
 
         if (204 !== $response->getStatusCode()) {
-            $this->logger->debug($response->getStatusCode().': '.$response->getContent(false));
-            throw new ProviderException('Unable to delete weblate component '.$component->slug.'.', $response);
+            $this->logger->debug($response->getStatusCode() . ': ' . $response->getContent(false));
+            throw new ProviderException('Unable to delete weblate component ' . $component->slug . '.', $response);
         }
 
         unset($this->components[$component->slug]);
 
-        $this->logger->debug('Deleted component '.$component->slug);
+        $this->logger->debug('Deleted component ' . $component->slug);
     }
 
     /**
@@ -183,10 +184,10 @@ class ComponentApi
         ]);
 
         if (200 !== $response->getStatusCode()) {
-            $this->logger->debug($response->getStatusCode().': '.$response->getContent(false));
-            throw new ProviderException('Unable to commit weblate component '.$component->slug.'.', $response);
+            $this->logger->debug($response->getStatusCode() . ': ' . $response->getContent(false));
+            throw new ProviderException('Unable to commit weblate component ' . $component->slug . '.', $response);
         }
 
-        $this->logger->debug('Committed component '.$component->slug);
+        $this->logger->debug('Committed component ' . $component->slug);
     }
 }

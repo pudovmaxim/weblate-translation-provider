@@ -1,4 +1,5 @@
 <?php
+
 /*
  * This file is part of the weblate-translation-provider package.
  *
@@ -34,7 +35,6 @@ class WeblateProvider implements ProviderInterface
         private ComponentApi    $componentApi,
         private TranslationApi  $translationApi,
         private UnitApi         $unitApi,
-        string                  $project
     ) {
     }
 
@@ -58,7 +58,7 @@ class WeblateProvider implements ProviderInterface
                 $content = $this->xliffFileDumper->formatCatalogue($catalogue, $domain, ['default_locale' => $this->defaultLocale]);
                 $component = $this->componentApi->getComponent($domain, $content);
                 if (!$component) {
-                    $this->logger->error('Could not get/add component for '.$domain);
+                    $this->logger->error('Could not get/add component for ' . $domain);
 
                     continue;
                 }

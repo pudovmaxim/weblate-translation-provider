@@ -1,4 +1,5 @@
 <?php
+
 /*
  * This file is part of the weblate-translation-provider package.
  *
@@ -14,6 +15,7 @@ use M2MTech\WeblateTranslationProvider\Api\TranslationApi;
 use M2MTech\WeblateTranslationProvider\Api\UnitApi;
 use M2MTech\WeblateTranslationProvider\Tests\Api\DTO\DTOFaker;
 use M2MTech\WeblateTranslationProvider\WeblateProvider;
+use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpClient\MockHttpClient;
 use Symfony\Component\HttpClient\Response\MockResponse;
@@ -26,8 +28,56 @@ use Symfony\Component\Translation\TranslatorBag;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Symfony\Contracts\HttpClient\ResponseInterface;
 
-class WeblateProviderTest extends ProviderTestCase
+class WeblateProviderTest extends TestCase
 {
+    /** @var ?HttpClientInterface */
+    protected $client;
+
+    /** @var ?LoggerInterface */
+    protected $logger;
+
+    /** @var ?string */
+    protected $defaultLocale;
+
+    /** @var ?LoaderInterface */
+    protected $loader;
+
+    /** @var ?XliffFileDumper */
+    protected $xliffFileDumper;
+
+    /**
+     * @dataProvider toStringProvider
+     */
+    public function testToString(ProviderInterface $provider, string $expected): void
+    {
+        $this->assertSame($expected, (string) $provider);
+    }
+
+    protected function getClient(): HttpClientInterface
+    {
+        return $this->client ?? $this->client = new MockHttpClient();
+    }
+
+    protected function getLoader(): LoaderInterface
+    {
+        return $this->loader ?? $this->loader = $this->createMock(LoaderInterface::class);
+    }
+
+    protected function getLogger(): LoggerInterface
+    {
+        return $this->logger ?? $this->logger = $this->createMock(LoggerInterface::class);
+    }
+
+    protected function getDefaultLocale(): string
+    {
+        return $this->defaultLocale ?? $this->defaultLocale = 'en';
+    }
+
+    protected function getXliffFileDumper(): XliffFileDumper
+    {
+        return $this->xliffFileDumper ?? $this->xliffFileDumper = $this->createMock(XliffFileDumper::class);
+    }
+
     public function createProvider(
         HttpClientInterface $client,
         LoaderInterface $loader,
@@ -73,7 +123,7 @@ class WeblateProviderTest extends ProviderTestCase
         int $statusCode = 200
     ): callable {
         return function (string $method, string $url, array $options = []) use ($expectedUrl, $expectedMethod, $expectedBody, $result, $statusCode): ResponseInterface {
-            $this->assertSame($expectedMethod.' '.$expectedUrl, $method.' '.$url);
+            $this->assertSame($expectedMethod . ' ' . $expectedUrl, $method . ' ' . $url);
             $this->assertSame('Authorization: Bearer API_TOKEN', $options['normalized_headers']['authorization'][0]);
             if ($expectedBody) {
                 $this->assertStringContainsString($expectedBody, $options['body']);

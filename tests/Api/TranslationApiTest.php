@@ -1,4 +1,5 @@
 <?php
+
 /*
  * This file is part of the weblate-translation-provider package.
  *
@@ -129,7 +130,7 @@ class TranslationApiTest extends ApiTest
         $newTranslation->created = true;
 
         $this->setupFactory([
-            $this->getAddTranslationResponse($component, 'language_code='.$newTranslation->language_code, $data),
+            $this->getAddTranslationResponse($component, 'language_code=' . $newTranslation->language_code, $data),
         ]);
 
         $translation = $this->translationApi->addTranslation($component, $newTranslation->language_code);
@@ -152,7 +153,7 @@ class TranslationApiTest extends ApiTest
 
         $this->setupFactory([
             $this->getGetTranslationsResponse($component, [$existingData]),
-            $this->getAddTranslationResponse($component, 'language_code='.$newTranslation->language_code, $newData),
+            $this->getAddTranslationResponse($component, 'language_code=' . $newTranslation->language_code, $newData),
         ]);
 
         $translation = $this->translationApi->getTranslation($component, $existingTranslation->language_code);

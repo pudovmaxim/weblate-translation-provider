@@ -1,4 +1,5 @@
 <?php
+
 /*
  * This file is part of the weblate-translation-provider package.
  *
@@ -10,10 +11,106 @@
 namespace M2MTech\WeblateTranslationProvider\Tests;
 
 use M2MTech\WeblateTranslationProvider\WeblateProviderFactory;
+use PHPUnit\Framework\TestCase;
+use Psr\Log\LoggerInterface;
+use Symfony\Component\HttpClient\MockHttpClient;
+use Symfony\Component\Translation\Dumper\XliffFileDumper;
+use Symfony\Component\Translation\Exception\IncompleteDsnException;
+use Symfony\Component\Translation\Exception\UnsupportedSchemeException;
+use Symfony\Component\Translation\Loader\LoaderInterface;
+use Symfony\Component\Translation\Provider\Dsn;
 use Symfony\Component\Translation\Provider\ProviderFactoryInterface;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
 
-class WeblateProviderFactoryTest extends ProviderFactoryTestCase
+class WeblateProviderFactoryTest extends TestCase
 {
+    /** @var ?HttpClientInterface */
+    protected $client;
+
+    /** @var ?LoggerInterface */
+    protected $logger;
+
+    /** @var ?LoaderInterface */
+    protected $loader;
+
+    /** @var ?XliffFileDumper */
+    protected $xliffFileDumper;
+
+    /**
+     * @dataProvider supportsProvider
+     */
+    public function testSupports(bool $expected, string $dsn): void
+    {
+        $factory = $this->createFactory();
+
+        $this->assertSame($expected, $factory->supports(new Dsn($dsn)));
+    }
+
+    /**
+     * @dataProvider createProvider
+     */
+    public function testCreate(string $expected, string $dsn): void
+    {
+        $factory = $this->createFactory();
+        $provider = $factory->create(new Dsn($dsn));
+
+        $this->assertSame($expected, (string) $provider);
+    }
+
+    /**
+     * @dataProvider unsupportedSchemeProvider
+     */
+    public function testUnsupportedSchemeException(string $dsn, ?string $message = null): void
+    {
+        $factory = $this->createFactory();
+
+        $dsn = new Dsn($dsn);
+
+        $this->expectException(UnsupportedSchemeException::class);
+        if (null !== $message) {
+            $this->expectExceptionMessage($message);
+        }
+
+        $factory->create($dsn);
+    }
+
+    /**
+     * @dataProvider incompleteDsnProvider
+     */
+    public function testIncompleteDsnException(string $dsn, ?string $message = null): void
+    {
+        $factory = $this->createFactory();
+
+        $dsn = new Dsn($dsn);
+
+        $this->expectException(IncompleteDsnException::class);
+        if (null !== $message) {
+            $this->expectExceptionMessage($message);
+        }
+
+        $factory->create($dsn);
+    }
+
+    protected function getClient(): HttpClientInterface
+    {
+        return $this->client ?? $this->client = new MockHttpClient();
+    }
+
+    protected function getLogger(): LoggerInterface
+    {
+        return $this->logger ?? $this->logger = $this->createMock(LoggerInterface::class);
+    }
+
+    protected function getLoader(): LoaderInterface
+    {
+        return $this->loader ?? $this->loader = $this->createMock(LoaderInterface::class);
+    }
+
+    protected function getXliffFileDumper(): XliffFileDumper
+    {
+        return $this->xliffFileDumper ?? $this->xliffFileDumper = $this->createMock(XliffFileDumper::class);
+    }
+
     public function createFactory(): ProviderFactoryInterface
     {
         return new WeblateProviderFactory(
@@ -21,8 +118,7 @@ class WeblateProviderFactoryTest extends ProviderFactoryTestCase
             $this->getLoader(),
             $this->getLogger(),
             $this->getXliffFileDumper(),
-            $this->getDefaultLocale(),
-            ['https' => true, 'verify_peer' => true]
+            'en'
         );
     }
 
